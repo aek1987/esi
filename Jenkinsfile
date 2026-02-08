@@ -53,7 +53,7 @@ pipeline {
                     allowMissing: false,
                     alwaysLinkToLastBuild: true,
                     keepAll: true,
-                    reportDir: 'reports',
+                    reportDir: 'target /site/apidocs',
                     reportFiles: 'myreport.html',
                     reportName: 'My Reports',
                     reportTitles: 'The Report'
