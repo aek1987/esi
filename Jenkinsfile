@@ -10,12 +10,6 @@ pipeline {
             }
         }
 
-        stage('Test') {
-            steps {
-                // Publie les résultats JUnit
-                junit testResults: 'target/surefire-reports/*.xml', allowEmptyResults: true
-            }
-        }
         stage('Build') {
             steps {
                 // Compiler et packager le projet Maven
@@ -26,37 +20,46 @@ pipeline {
             }
         }
 
+        stage('Test') {
+            steps {
+                // Publie les résultats JUnit
+                junit testResults: 'target/surefire-reports/*.xml', allowEmptyResults: true
+            }
+        }
 
         stage('Documentation') {
             steps {
                 // Génère la documentation Javadoc
                 bat 'mvn javadoc:javadoc'
-               // Créer un dossier doc si non existant
-        bat 'if not exist doc mkdir doc'
 
-        // Copier le contenu de target/site dans doc
-        bat 'xcopy target\\site doc\\ /E /I /Y'
+                // Créer un dossier doc si non existant
+                bat 'if not exist doc mkdir doc'
 
-        // Compresser le dossier doc en ZIP
-        bat 'powershell -Command "Compress-Archive -Path doc\\* -DestinationPath doc.zip -Force"'
+                // Copier le contenu de target/site dans doc
+                bat 'xcopy target\\site doc\\ /E /I /Y'
 
-        // Archive le fichier ZIP
-        archiveArtifacts artifacts: 'doc.zip', allowEmptyArchive: true
+                // Compresser le dossier doc en ZIP
+                bat 'powershell -Command "Compress-Archive -Path doc\\* -DestinationPath doc.zip -Force"'
+
+                // Archive le fichier ZIP
+                archiveArtifacts artifacts: 'doc.zip', allowEmptyArchive: true
+            }
+        }
+
+        stage('Publish Report') {
+            steps {
+                // Publier un rapport HTML
+                publishHTML(target: [
+                    allowMissing: false,
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true,
+                    reportDir: 'reports',
+                    reportFiles: 'myreport.html',
+                    reportName: 'My Reports',
+                    reportTitles: 'The Report'
+                ])
             }
         }
 
     }
-
-
- stage('condition') {
-    steps {
-    publishHTML (target : [allowMissing: false,
- alwaysLinkToLastBuild: true,
- keepAll: true,
- reportDir: 'reports',
- reportFiles: 'myreport.html',
- reportName: 'My Reports',
- reportTitles: 'The Report'])
- 
- }}
 }
