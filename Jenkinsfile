@@ -42,9 +42,12 @@ pipeline {
     post {
         success {
             echo "🎉 PIPELINE SUCCESS"
-           mail (   subject: "Build success",    body: "Build succeeded",
+        mail(
+    subject: "Build success",
+    body: "Build succeeded",
     to: "nekaaabdelkader1987@gmail.com"
 )
+
 
         }
         failure {
