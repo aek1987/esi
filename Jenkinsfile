@@ -10,6 +10,12 @@ pipeline {
             }
         }
 
+        stage('Test') {
+            steps {
+                // Publie les résultats JUnit
+                junit testResults: 'target/surefire-reports/*.xml', allowEmptyResults: true
+            }
+        }
         stage('Build') {
             steps {
                 // Compiler et packager le projet Maven
@@ -20,12 +26,6 @@ pipeline {
             }
         }
 
-        stage('Test') {
-            steps {
-                // Publie les résultats JUnit
-                junit testResults: 'target/surefire-reports/*.xml', allowEmptyResults: true
-            }
-        }
 
         stage('Documentation') {
             steps {
