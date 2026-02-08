@@ -14,17 +14,12 @@ pipeline {
 
         
 
-        stage('Build') {
+         stage('Build') {
             steps {
-                // Compiler et packager le projet Maven
                 bat 'mvn package'
-
-                // Archive les fichiers JAR générés
                 archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
             }
-
-
-           post {
+            post {
                 success {
                     echo "✅ Build success"
                 }
@@ -33,7 +28,6 @@ pipeline {
                 }
             }
         }
-
         stage('Test') {
             steps {
                 // Publie les résultats JUnit
