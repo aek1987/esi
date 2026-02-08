@@ -10,6 +10,15 @@ pipeline {
             }
         }
 
+
+
+        stage('Test') {
+            steps {
+                // Exécute les tests et publie les résultats JUnit
+               junit 'target/surefire-reports/*.xml'
+
+            }
+        }
         stage('Build') {
             steps {
                 // Compiler et packager le projet Maven
@@ -20,10 +29,10 @@ pipeline {
             }
         }
 
-        stage('Test') {
+       
+        stage('documotation') {
             steps {
-                // Exécute les tests et publie les résultats JUnit
-                junit testResults: 'target/surefire-reports/*.xml', allowEmptyResults: true
+               bat: 'mvnw javadoc :javadoc'
             }
         }
 
