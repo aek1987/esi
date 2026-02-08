@@ -26,14 +26,14 @@ pipeline {
 
                 // Archive les fichiers JAR générés
                  // Archive les fichiers JAR générés
-                archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
+               archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
             }
         }
 
        
         stage('documotation') {
             steps {
-               bat: 'mvnw javadoc :javadoc'
+              bat 'mvnw javadoc:javadoc'
                archiveArtifacts 'target/site'
             }
         }
