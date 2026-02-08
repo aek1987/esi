@@ -10,6 +10,10 @@ pipeline {
             }
         }
 
+
+
+        
+
         stage('Build') {
             steps {
                 // Compiler et packager le projet Maven
@@ -17,6 +21,15 @@ pipeline {
 
                 // Archive les fichiers JAR générés
                 archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
+            }
+
+
+            post {
+
+succes {echo " build sucdcess"}
+failur {echo "build failer"}
+
+
             }
         }
 
