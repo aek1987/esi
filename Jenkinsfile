@@ -23,7 +23,11 @@ pipeline {
             }
            
         }
-
+        stage('Docker Build') {
+            steps {
+                bat 'docker-compose up --build'
+            }
+        }
         stage('Publish Report') {
             steps {
                 publishHTML(target: [
