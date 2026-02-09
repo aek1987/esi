@@ -9,6 +9,11 @@ docker 2
 
 changer la branche git 
 
+add
+ when {
+                branch 'main'   // ne s'exécute que si la branche est main
+            }
+
 
 
 
