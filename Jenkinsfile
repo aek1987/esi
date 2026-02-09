@@ -43,7 +43,7 @@ pipeline {
         }
     }
 
-   post {
+ /*  post {
     success {
         echo "🎉 PIPELINE SUCCESS"
         mail(
@@ -55,6 +55,6 @@ pipeline {
     failure {
         echo "🔥 PIPELINE FAILED"
     }
-}
+}*/
 
 }
