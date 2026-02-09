@@ -17,6 +17,11 @@ pipeline {
         }
 
         stage('Build') {
+           
+            when {
+                branch 'main'   // ne s'exécute que si la branche est main
+            }
+           
             steps {
                 bat 'mvn package'
                 archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
@@ -24,6 +29,10 @@ pipeline {
            
         }
         stage('Docker Build') {
+             when {
+                branch 'main'   // ne s'exécute que si la branche est main
+            }
+            
             steps {
                 bat 'docker-compose up --build -d'
             }
