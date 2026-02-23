@@ -42,14 +42,14 @@ stage('Health Check') {
 
                 // Vérifie si le port 8082 répond
                 def portOpen = bat(
-                    script: "powershell -Command \"Try {Test-NetConnection -ComputerName localhost -Port 8082 -WarningAction SilentlyContinue} | Select-Object -ExpandProperty TcpTestSucceeded\"",
+                    script: 'powershell -Command "Test-NetConnection -ComputerName localhost -Port 8082 -WarningAction SilentlyContinue | Select-Object -ExpandProperty TcpTestSucceeded"',
                     returnStdout: true
                 ).trim()
 
-                if (portOpen == "True") {
+                if (portOpen.toLowerCase() == "true") {
                     echo "Port 8082 is open, sending health request..."
                     // Exécute curl
-                    bat "curl -s -o response.json http://localhost:8082/actuator/health || echo 000"
+                    bat 'curl -s -o response.json http://localhost:8082/actuator/health || echo 000'
 
                     // Vérifie si response.json contient "UP"
                     isHealthy = bat(
