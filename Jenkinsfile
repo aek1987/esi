@@ -32,26 +32,36 @@ pipeline {
 stage('Health Check') {
     steps {
         echo "Checking Health..."
-        sleep time: 10, unit: 'SECONDS'
-
+        
         script {
-            // Exécute curl et récupère la réponse dans response.json
-            def curlResult = bat(
-                script: 'curl -s -o response.json http://localhost:8082/actuator/health || echo 000',
-                returnStatus: true
-            )
-
-            // Vérifie si le fichier response.json existe et contient "UP"
-            def isHealthy = bat(
-                script: 'findstr /C:"UP" response.json >nul && echo HEALTHY || echo UNHEALTHY',
-                returnStdout: true
-            ).trim()
-
-            echo "Health check result: ${isHealthy}"
-
-            if (isHealthy == "HEALTHY") {
-                echo "Application is healthy ✅"
-            } else {
+            def maxRetries = 5
+            def waitSeconds = 10
+            def isHealthy = "UNHEALTHY"
+            
+            for (int i = 1; i <= maxRetries; i++) {
+                echo "Attempt ${i} of ${maxRetries}..."
+                
+                // Exécute curl
+                bat "curl -s -o response.json http://localhost:8082/actuator/health || echo 000"
+                
+                // Vérifie si response.json contient "UP"
+                isHealthy = bat(
+                    script: 'findstr /C:"UP" response.json >nul && echo HEALTHY || echo UNHEALTHY',
+                    returnStdout: true
+                ).trim()
+                
+                echo "Health check result: ${isHealthy}"
+                
+                if (isHealthy == "HEALTHY") {
+                    echo "Application is healthy ✅"
+                    break
+                } else if (i < maxRetries) {
+                    echo "Waiting ${waitSeconds}s before retry..."
+                    sleep time: waitSeconds, unit: 'SECONDS'
+                }
+            }
+            
+            if (isHealthy != "HEALTHY") {
                 echo "Application not reachable or not healthy ❌"
                 currentBuild.result = 'FAILURE'
             }
