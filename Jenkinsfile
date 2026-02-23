@@ -109,10 +109,15 @@ pipeline {
                  echo "pro stable ${stableTag}" */
                 echo "Starting rollback to tag: ${ROLLBACK_TAG}"
                 script {
-                   bat """
-                        git fetch origin --tags --force
-                        git checkout tags/${ROLLBACK_TAG} -b ${ROLLBACK_BRANCH}
-                    """
+                 // 1️⃣ Récupérer tous les tags depuis le remote
+bat 'git fetch origin --tags --force'
+
+// 2️⃣ Créer et basculer sur la branche depuis le tag
+// 1️⃣ Créer une branche locale à partir du tag
+bat "git branch ${ROLLBACK_BRANCH} ${ROLLBACK_TAG}"
+
+// 2️⃣ Basculer sur cette nouvelle branche
+bat "git checkout ${ROLLBACK_BRANCH}"
 
                     echo "Rolled back to tag ${ROLLBACK_TAG} on new branch ${ROLLBACK_BRANCH}"
 
