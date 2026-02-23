@@ -35,7 +35,7 @@ stage('Health Check') {
         sleep time: 10, unit: 'SECONDS'
 
         script {
-            // Exécute le curl sous cmd et récupère le code HTTP
+            // Exécute le curl gggsous cmd et récupère le code HTTP
             def result = bat(
                 script: """
                     curl -s -o response.json -w "%%{http_code}" http://localhost:8082/actuator/health || echo 000
