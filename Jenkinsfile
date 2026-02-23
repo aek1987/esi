@@ -30,66 +30,50 @@ pipeline {
         }
 
 stage('Health Check') {
-    steps {
-        echo "Checking Health..."
-        script {
-            def maxRetries = 10
-            def waitSeconds = 5
-            def isHealthy = "UNHEALTHY"
+   steps {
+       echo "Checking Health..."
+       sleep time: 10, unit: 'SECONDS'
 
-            for (int i = 1; i <= maxRetries; i++) {
-                echo "Attempt ${i}/${maxRetries}..."
 
-                // Vérifie si le port 8082 répond
-                def portOpen = bat(
-                    script: 'powershell -Command "Test-NetConnection -ComputerName localhost -Port 8082 -WarningAction SilentlyContinue | Select-Object -ExpandProperty TcpTestSucceeded"',
-                    returnStdout: true
-                ).trim()
+       script {
 
-                if (portOpen.toLowerCase() == "true") {
-                    echo "Port 8082 is open, sending health request..."
 
-                    // Exécute curl
-                    def curlStatus = bat(
-                        script: 'curl -s -o response.json http://localhost:8082/actuator/health || echo 000',
-                        returnStatus: true
-                    )
+           def result = sh(
+               script: """
+                   curl -s -o response.json -w "%%{http_code}" http://localhost:8082/actuator/health || echo "000"
+               """,
+               returnStdout: true
+           ).trim()
 
-                    if (curlStatus != 0) {
-                        echo "Curl failed to get health endpoint"
-                    }
 
-                    // Vérifie si response.json contient "UP"
-                    def healthCheck = bat(
-                        script: 'findstr /C:"UP" response.json >nul && echo HEALTHY || echo UNHEALTHY',
-                        returnStdout: true
-                    ).trim()
-                    
-                    if (healthCheck == "HEALTHY") {
-                        echo "Application is healthy ✅"
-                        isHealthy = "HEALTHY"
-                        break
-                    } else {
-                        echo "Application responded but is not healthy yet..."
-                    }
+           def httpCode = result
 
-                } else {
-                    echo "Port 8082 not open yet..."
-                }
 
-                if (i < maxRetries) {
-                    echo "Waiting ${waitSeconds}s before retry..."
-                    sleep time: waitSeconds, unit: 'SECONDS'
-                }
-            }
+           echo "HTTP Code: ${httpCode}"
 
-            if (isHealthy != "HEALTHY") {
-                echo "Application not reachable or not healthy ❌"
+
+           if (httpCode == "200") {
+
+
+               def body = readFile('response.json')
+               echo "Body: ${body}"
+
+
+               if (body.contains('"status":"UP"')) {
+                   echo "Application is healthy ✅"
+               } else {
+                    currentBuild.result = 'FAILURE'
+               }
+
+
+           } else {
+               echo "Application not reachable"
                 currentBuild.result = 'FAILURE'
-            }
-        }
-    }
+           }
+       }
+   }
 }
+
         stage('Publish Report') {
             steps {
                 publishHTML(target: [
