@@ -3,7 +3,7 @@ pipeline {
 
  environment {
        ROLLBACK_TAG = "v1.0.0"   // Set your stable rollback tag here
-       ROLLBACK_BRANCH = "rollback/hotfix-1.0.0"
+       ROLLBACK_BRANCH = "rollback/hotfix-1.1.0"
    }
     stages {
 
