@@ -16,13 +16,13 @@ pipeline {
             }
         }
 
-        stage('Build') {
+       /* stage('Build') {
             steps {
                 bat 'mvn package'
                 archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
             }
            
-        }
+        }*/
         stage('Docker Build') {
             steps {
                 bat 'docker-compose up --build -d'
