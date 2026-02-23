@@ -35,31 +35,24 @@ stage('Health Check') {
         sleep time: 10, unit: 'SECONDS'
 
         script {
-            // Exécute le curl gggsous cmd et récupère le code HTTP
-            def result = bat(
-                script: """
-                    curl -s -o response.json -w "%%{http_code}" http://localhost:8082/actuator/health || echo 000
-                """,
+            // Exécute curl et récupère la réponse dans response.json
+            def curlResult = bat(
+                script: 'curl -s -o response.json http://localhost:8082/actuator/health || echo 000',
+                returnStatus: true
+            )
+
+            // Vérifie si le fichier response.json existe et contient "UP"
+            def isHealthy = bat(
+                script: 'findstr /C:"UP" response.json >nul && echo HEALTHY || echo UNHEALTHY',
                 returnStdout: true
             ).trim()
 
-            // Attention : sous Windows, le code de retour peut contenir CRLF
-            def httpCode = result.replaceAll('[\\r\\n]', '')
+            echo "Health check result: ${isHealthy}"
 
-            echo "HTTP Code: ${httpCode}"
-
-            if (httpCode == "200") {
-                def body = readFile('response.json')
-                echo "Body: ${body}"
-
-                if (body.contains('"status":"UP"')) {
-                    echo "Application is healthy ✅"
-                } else {
-                    echo "Health endpoint returned non-UP status ❌"
-                    currentBuild.result = 'FAILURE'
-                }
+            if (isHealthy == "HEALTHY") {
+                echo "Application is healthy ✅"
             } else {
-                echo "Application not reachable ❌"
+                echo "Application not reachable or not healthy ❌"
                 currentBuild.result = 'FAILURE'
             }
         }
