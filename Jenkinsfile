@@ -32,35 +32,45 @@ pipeline {
 stage('Health Check') {
     steps {
         echo "Checking Health..."
-        
         script {
-            def maxRetries = 5
-            def waitSeconds = 10
+            def maxRetries = 10
+            def waitSeconds = 5
             def isHealthy = "UNHEALTHY"
-            
+
             for (int i = 1; i <= maxRetries; i++) {
-                echo "Attempt ${i} of ${maxRetries}..."
-                
-                // Exécute curl
-                bat "curl -s -o response.json http://localhost:8082/actuator/health || echo 000"
-                
-                // Vérifie si response.json contient "UP"
-                isHealthy = bat(
-                    script: 'findstr /C:"UP" response.json >nul && echo HEALTHY || echo UNHEALTHY',
+                echo "Attempt ${i}/${maxRetries}..."
+
+                // Vérifie si le port 8082 répond
+                def portOpen = bat(
+                    script: "powershell -Command \"Try {Test-NetConnection -ComputerName localhost -Port 8082 -WarningAction SilentlyContinue} | Select-Object -ExpandProperty TcpTestSucceeded\"",
                     returnStdout: true
                 ).trim()
-                
-                echo "Health check result: ${isHealthy}"
-                
-                if (isHealthy == "HEALTHY") {
-                    echo "Application is healthy ✅"
-                    break
-                } else if (i < maxRetries) {
+
+                if (portOpen == "True") {
+                    echo "Port 8082 is open, sending health request..."
+                    // Exécute curl
+                    bat "curl -s -o response.json http://localhost:8082/actuator/health || echo 000"
+
+                    // Vérifie si response.json contient "UP"
+                    isHealthy = bat(
+                        script: 'findstr /C:"UP" response.json >nul && echo HEALTHY || echo UNHEALTHY',
+                        returnStdout: true
+                    ).trim()
+                    
+                    if (isHealthy == "HEALTHY") {
+                        echo "Application is healthy ✅"
+                        break
+                    }
+                } else {
+                    echo "Port 8082 not open yet..."
+                }
+
+                if (i < maxRetries) {
                     echo "Waiting ${waitSeconds}s before retry..."
                     sleep time: waitSeconds, unit: 'SECONDS'
                 }
             }
-            
+
             if (isHealthy != "HEALTHY") {
                 echo "Application not reachable or not healthy ❌"
                 currentBuild.result = 'FAILURE'
