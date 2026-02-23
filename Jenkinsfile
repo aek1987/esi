@@ -48,19 +48,31 @@ stage('Health Check') {
 
                 if (portOpen.toLowerCase() == "true") {
                     echo "Port 8082 is open, sending health request..."
+
                     // Exécute curl
-                    bat 'curl -s -o response.json http://localhost:8082/actuator/health || echo 000'
+                    def curlStatus = bat(
+                        script: 'curl -s -o response.json http://localhost:8082/actuator/health || echo 000',
+                        returnStatus: true
+                    )
+
+                    if (curlStatus != 0) {
+                        echo "Curl failed to get health endpoint"
+                    }
 
                     // Vérifie si response.json contient "UP"
-                    isHealthy = bat(
+                    def healthCheck = bat(
                         script: 'findstr /C:"UP" response.json >nul && echo HEALTHY || echo UNHEALTHY',
                         returnStdout: true
                     ).trim()
                     
-                    if (isHealthy == "HEALTHY") {
+                    if (healthCheck == "HEALTHY") {
                         echo "Application is healthy ✅"
+                        isHealthy = "HEALTHY"
                         break
+                    } else {
+                        echo "Application responded but is not healthy yet..."
                     }
+
                 } else {
                     echo "Port 8082 not open yet..."
                 }
