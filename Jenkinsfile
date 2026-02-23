@@ -29,51 +29,42 @@ pipeline {
             }
         }
 
-        stage('Health Check') {
-   steps {
-       echo "Checking Health..."
-       sleep time: 10, unit: 'SECONDS'
+stage('Health Check') {
+    steps {
+        echo "Checking Health..."
+        sleep time: 10, unit: 'SECONDS'
 
+        script {
+            // Exécute le curl sous cmd et récupère le code HTTP
+            def result = bat(
+                script: """
+                    curl -s -o response.json -w "%%{http_code}" http://localhost:8082/actuator/health || echo 000
+                """,
+                returnStdout: true
+            ).trim()
 
-       script {
+            // Attention : sous Windows, le code de retour peut contenir CRLF
+            def httpCode = result.replaceAll('[\\r\\n]', '')
 
+            echo "HTTP Code: ${httpCode}"
 
-           def result = sh(
-               script: """
-                   curl -s -o response.json -w "%{http_code}" http://localhost:8082/actuator/health || echo "000"
-               """,
-               returnStdout: true
-           ).trim()
+            if (httpCode == "200") {
+                def body = readFile('response.json')
+                echo "Body: ${body}"
 
-
-           def httpCode = result
-
-
-           echo "HTTP Code: ${httpCode}"
-
-
-           if (httpCode == "200") {
-
-
-               def body = readFile('response.json')
-               echo "Body: ${body}"
-
-
-               if (body.contains('"status":"UP"')) {
-                   echo "Application is healthy ✅"
-               } else {
+                if (body.contains('"status":"UP"')) {
+                    echo "Application is healthy ✅"
+                } else {
+                    echo "Health endpoint returned non-UP status ❌"
                     currentBuild.result = 'FAILURE'
-               }
-
-
-           } else {
-               echo "Application not reachable"
+                }
+            } else {
+                echo "Application not reachable ❌"
                 currentBuild.result = 'FAILURE'
-           }
-       }
-   }
+            }
+        }
+    }
 }
-
         stage('Publish Report') {
             steps {
                 publishHTML(target: [
